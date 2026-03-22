@@ -130,10 +130,10 @@ def get_listing_details(listing_id) -> dict:
         host_name = host_match.group(1).strip()
 
     # find the room type from the listing subtitle
-    room_match = re.search(r"(Entire .*? hosted by .*?|Private .*? hosted by .*?|Shared .*? hosted by .*?)", page_text)
+    room_match = re.search(r"(Entire|Private|Shared).*?hosted by", page_text)
 
     if room_match:
-        room_text = room_match.group(1)
+        room_text = room_match.group(0)
 
         if "Private" in room_text:
             room_type = "Private Room"
@@ -253,7 +253,31 @@ def avg_location_rating_by_room_type(data) -> dict:
         dict: {room_type: average_location_rating}
     """
     
-    pass
+    ratings_by_room_type = {}
+
+    for listing in data:
+        room_type = listing[5]
+        location_rating = listing[6]
+
+        # skip listings with no location rating
+        if location_rating == 0.0:
+            continue
+
+        # create a new list for this room type if needed
+        if room_type not in ratings_by_room_type:
+            ratings_by_room_type[room_type] = []
+
+        # add the rating to the correct room type
+        ratings_by_room_type[room_type].append(location_rating)
+
+    averages = {}
+
+    for room_type in ratings_by_room_type:
+        ratings = ratings_by_room_type[room_type]
+        average = sum(ratings) / len(ratings)
+        averages[room_type] = average
+
+    return averages
 
 
 def validate_policy_numbers(data) -> list[str]:
@@ -350,9 +374,11 @@ class TestCases(unittest.TestCase):
 
 
     def test_avg_location_rating_by_room_type(self):
-        # TODO: Call avg_location_rating_by_room_type() and save the output.
-        # TODO: Check that the average for "Private Room" is 4.9.
-        pass
+        # Call avg_location_rating_by_room_type() and save the output.
+        averages = avg_location_rating_by_room_type(self.detailed_data)
+
+        # Check that the average for "Private Room" is 4.9.
+        self.assertEqual(averages["Private Room"], 4.9)
 
 
     def test_validate_policy_numbers(self):
