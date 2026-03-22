@@ -36,6 +36,7 @@ def load_listing_results(html_path) -> list[tuple]:
     Returns:
         list[tuple]: A list of tuples containing (listing_title, listing_id)
     """
+    
     results = []
 
     with open(html_path, "r", encoding="utf-8-sig") as file:
@@ -81,8 +82,77 @@ def get_listing_details(listing_id) -> dict:
             }
         }
     """
-    
-    pass
+
+    base_dir = os.path.abspath(os.path.dirname(__file__))
+    file_path = os.path.join(base_dir, "html_files", f"listing_{listing_id}.html")
+
+    with open(file_path, "r", encoding="utf-8-sig") as file:
+        html = file.read()
+
+    soup = BeautifulSoup(html, "html.parser")
+    page_text = soup.get_text(" ", strip=True)
+
+    # default values in case something is missing
+    policy_number = ""
+    host_type = "regular"
+    host_name = ""
+    room_type = "Entire Room"
+    location_rating = 0.0
+
+    # find the policy number text
+    policy_match = re.search(
+        r"Policy number:\s*(.*?)\s+(Languages|Language|Response rate|Response time)",
+        page_text
+    )
+
+    if policy_match:
+        raw_policy = policy_match.group(1).strip()
+
+        if raw_policy.lower() == "pending":
+            policy_number = "Pending"
+        elif raw_policy.lower() == "exempt":
+            policy_number = "Exempt"
+        else:
+            policy_number = raw_policy
+
+    # check if the host is a Superhost
+    if "Superhost" in page_text:
+        host_type = "Superhost"
+
+    # find the host name
+    host_match = re.search(r"Hosted by (.*?) Joined in", page_text)
+
+    if host_match:
+        host_name = host_match.group(1).strip()
+
+    # find the room type from the listing subtitle
+    room_match = re.search(r"(Entire .*? hosted by .*?|Private .*? hosted by .*?|Shared .*? hosted by .*?)", page_text)
+
+    if room_match:
+        room_text = room_match.group(1)
+
+        if "Private" in room_text:
+            room_type = "Private Room"
+        elif "Shared" in room_text:
+            room_type = "Shared Room"
+        else:
+            room_type = "Entire Room"
+
+    # find the location rating
+    location_match = re.search(r"Location\s+([0-9]\.[0-9])", page_text)
+
+    if location_match:
+        location_rating = float(location_match.group(1))
+
+    return {
+        listing_id: {
+            "policy_number": policy_number,
+            "host_type": host_type,
+            "host_name": host_name,
+            "room_type": room_type,
+            "location_rating": location_rating
+        }
+    }
 
 
 def create_listing_database(html_path) -> list[tuple]:
@@ -149,7 +219,6 @@ def validate_policy_numbers(data) -> list[str]:
     pass
 
 
-# EXTRA CREDIT
 def google_scholar_searcher(query):
     """
     EXTRA CREDIT
@@ -181,13 +250,21 @@ class TestCases(unittest.TestCase):
     def test_get_listing_details(self):
         html_list = ["467507", "1550913", "1944564", "4614763", "6092596"]
 
-        # TODO: Call get_listing_details() on each listing id above and save results in a list.
+        # Call get_listing_details() on each listing id above and save results in a list.
+        details_list = []
+        for listing_id in html_list:
+            details_list.append(get_listing_details(listing_id))
 
-        # TODO: Spot-check a few known values by opening the corresponding listing_<id>.html files.
+        # Spot-check a few known values by opening the corresponding listing_<id>.html files.
         # 1) Check that listing 467507 has the correct policy number "STR-0005349".
         # 2) Check that listing 1944564 has the correct host type "Superhost" and room type "Entire Room".
         # 3) Check that listing 1944564 has the correct location rating 4.9.
-        pass
+
+        self.assertEqual(details_list[0]["467507"]["policy_number"], "STR-0005349")
+        self.assertEqual(details_list[2]["1944564"]["host_type"], "Superhost")
+        self.assertEqual(details_list[2]["1944564"]["room_type"], "Entire Room")
+        self.assertEqual(details_list[2]["1944564"]["location_rating"], 4.9)
+        
 
     def test_create_listing_database(self):
         # TODO: Check that each tuple in detailed_data has exactly 7 elements:
