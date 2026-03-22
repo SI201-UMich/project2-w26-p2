@@ -322,7 +322,32 @@ def google_scholar_searcher(query):
         List of titles on the first page (list)
     """
     
-    pass
+    # Google Scholar search page
+    url = "https://scholar.google.com/scholar"
+
+    # send the search query
+    params = {"q": query}
+
+    # send a request to Google Scholar using the search query
+    # ex: if query = "airbnb", the request goes to https://scholar.google.com/scholar?q=airbnb
+    response = requests.get(url, params=params)
+    # get the HTML from the page
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    # store all article titles in a list
+    titles = []
+
+    # find each title section on the page
+    for title_section in soup.find_all("h3", class_="gs_rt"):
+        # find the link tag inside the title section
+        link = title_section.find("a")
+
+        # if there is a link, get the title text and save it
+        if link:
+            title = link.get_text(strip=True)
+            titles.append(title)
+
+    return titles
 
 
 class TestCases(unittest.TestCase):
@@ -401,7 +426,7 @@ class TestCases(unittest.TestCase):
     def test_validate_policy_numbers(self):
         # Call validate_policy_numbers() on detailed_data and save the result into a variable invalid_listings.
         invalid_listings = validate_policy_numbers(self.detailed_data)
-        
+
         # Check that the list contains exactly "16204265" for this dataset.
         self.assertEqual(invalid_listings, ["16204265"])
 
