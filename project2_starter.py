@@ -39,6 +39,10 @@ def load_listing_results(html_path) -> list[tuple]:
     
     results = []
 
+    if not os.path.exists(html_path):
+        base_dir = os.path.abspath(os.path.dirname(__file__))
+        html_path = os.path.join(base_dir, html_path)
+
     with open(html_path, "r", encoding="utf-8-sig") as file:
         html = file.read()
 
@@ -167,7 +171,39 @@ def create_listing_database(html_path) -> list[tuple]:
         (listing_title, listing_id, policy_number, host_type, host_name, room_type, location_rating)
     """
     
-    pass
+    listing_data = []
+    listing_results = load_listing_results(html_path)
+
+    for listing in listing_results:
+        # get the title and id from each tuple
+        listing_title = listing[0]
+        listing_id = listing[1]
+
+        # get the rest of the information for this listing
+        details = get_listing_details(listing_id)
+
+        # pull each value from the nested dictionary
+        policy_number = details[listing_id]["policy_number"]
+        host_type = details[listing_id]["host_type"]
+        host_name = details[listing_id]["host_name"]
+        room_type = details[listing_id]["room_type"]
+        location_rating = details[listing_id]["location_rating"]
+
+        # put all listing information into one tuple
+        listing_tuple = (
+            listing_title,
+            listing_id,
+            policy_number,
+            host_type,
+            host_name,
+            room_type,
+            location_rating
+        )
+
+        # add the tuple to the final list
+        listing_data.append(listing_tuple)
+
+    return listing_data
 
 
 def output_csv(data, filename) -> None:
@@ -267,11 +303,13 @@ class TestCases(unittest.TestCase):
         
 
     def test_create_listing_database(self):
-        # TODO: Check that each tuple in detailed_data has exactly 7 elements:
+        # Check that each tuple in detailed_data has exactly 7 elements:
         # (listing_title, listing_id, policy_number, host_type, host_name, room_type, location_rating)
+        for listing in self.detailed_data:
+            self.assertEqual(len(listing), 7)
 
-        # TODO: Spot-check the LAST tuple is ("Guest suite in Mission District", "467507", "STR-0005349", "Superhost", "Jennifer", "Entire Room", 4.8).
-        pass
+        # Spot-check the LAST tuple is ("Guest suite in Mission District", "467507", "STR-0005349", "Superhost", "Jennifer", "Entire Room", 4.8).
+        self.assertEqual(self.detailed_data[-1], ("Guest suite in Mission District", "467507", "STR-0005349", "Superhost", "Jennifer", "Entire Room", 4.8))
 
     def test_output_csv(self):
         out_path = os.path.join(self.base_dir, "test.csv")
