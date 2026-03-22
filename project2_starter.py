@@ -219,8 +219,24 @@ def output_csv(data, filename) -> None:
     Returns:
         None
     """
-    
-    pass
+
+    sorted_data = sorted(data, key=lambda listing: listing[6], reverse=True)
+
+    with open(filename, "w", newline="", encoding="utf-8-sig") as file:
+        writer = csv.writer(file)
+
+        writer.writerow([
+            "Listing Title",
+            "Listing ID",
+            "Policy Number",
+            "Host Type",
+            "Host Name",
+            "Room Type",
+            "Location Rating"
+        ])
+
+        for listing in sorted_data:
+            writer.writerow(listing)
 
 
 def avg_location_rating_by_room_type(data) -> dict:
@@ -276,12 +292,14 @@ class TestCases(unittest.TestCase):
         self.listings = load_listing_results(self.search_results_path)
         self.detailed_data = create_listing_database(self.search_results_path)
 
+
     def test_load_listing_results(self):
         # Check that the number of listings extracted is 18.
         self.assertEqual(len(self.listings), 18)
 
         # Check that the FIRST (title, id) tuple is ("Loft in Mission District", "1944564").
         self.assertEqual(self.listings[0], ("Loft in Mission District", "1944564"))
+
 
     def test_get_listing_details(self):
         html_list = ["467507", "1550913", "1944564", "4614763", "6092596"]
@@ -311,19 +329,31 @@ class TestCases(unittest.TestCase):
         # Spot-check the LAST tuple is ("Guest suite in Mission District", "467507", "STR-0005349", "Superhost", "Jennifer", "Entire Room", 4.8).
         self.assertEqual(self.detailed_data[-1], ("Guest suite in Mission District", "467507", "STR-0005349", "Superhost", "Jennifer", "Entire Room", 4.8))
 
+
     def test_output_csv(self):
         out_path = os.path.join(self.base_dir, "test.csv")
 
-        # TODO: Call output_csv() to write the detailed_data to a CSV file.
-        # TODO: Read the CSV back in and store rows in a list.
-        # TODO: Check that the first data row matches ["Guesthouse in San Francisco", "49591060", "STR-0000253", "Superhost", "Ingrid", "Entire Room", "5.0"].
+        # Call output_csv() to write the detailed_data to a CSV file.
+        output_csv(self.detailed_data, out_path)
+
+        # Read the CSV back in and store rows in a list.
+        rows = []
+        with open(out_path, "r", encoding="utf-8-sig") as file:
+            reader = csv.reader(file)
+            for row in reader:
+                rows.append(row)
+
+        # Check that the first data row matches ["Guesthouse in San Francisco", "49591060", "STR-0000253", "Superhost", "Ingrid", "Entire Room", "5.0"].
+        self.assertEqual(rows[1], ["Guesthouse in San Francisco", "49591060", "STR-0000253", "Superhost", "Ingrid", "Entire Room", "5.0"])
 
         os.remove(out_path)
+
 
     def test_avg_location_rating_by_room_type(self):
         # TODO: Call avg_location_rating_by_room_type() and save the output.
         # TODO: Check that the average for "Private Room" is 4.9.
         pass
+
 
     def test_validate_policy_numbers(self):
         # TODO: Call validate_policy_numbers() on detailed_data and save the result into a variable invalid_listings.
