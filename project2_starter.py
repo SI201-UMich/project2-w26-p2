@@ -292,7 +292,24 @@ def validate_policy_numbers(data) -> list[str]:
         list[str]: A list of listing_id values whose policy numbers do NOT match the valid format
     """
     
-    pass
+    invalid_listings = []
+
+    for listing in data:
+        listing_id = listing[1]
+        policy_number = listing[2]
+
+        # skip pending and exempt listings
+        if policy_number == "Pending" or policy_number == "Exempt":
+            continue
+
+        # check if the policy number matches one of the two valid formats
+        valid_format_1 = re.fullmatch(r"20\d\d-00\d\d\d\dSTR", policy_number)
+        valid_format_2 = re.fullmatch(r"STR-000\d\d\d\d", policy_number)
+
+        if not valid_format_1 and not valid_format_2:
+            invalid_listings.append(listing_id)
+
+    return invalid_listings
 
 
 def google_scholar_searcher(query):
@@ -382,9 +399,11 @@ class TestCases(unittest.TestCase):
 
 
     def test_validate_policy_numbers(self):
-        # TODO: Call validate_policy_numbers() on detailed_data and save the result into a variable invalid_listings.
-        # TODO: Check that the list contains exactly "16204265" for this dataset.
-        pass
+        # Call validate_policy_numbers() on detailed_data and save the result into a variable invalid_listings.
+        invalid_listings = validate_policy_numbers(self.detailed_data)
+        
+        # Check that the list contains exactly "16204265" for this dataset.
+        self.assertEqual(invalid_listings, ["16204265"])
 
 
 def main():
