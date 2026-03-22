@@ -1,14 +1,13 @@
-# SI 201 HW4 (Library Checkout System)
-# Your name:
-# Your student id:
-# Your email:
+﻿# SI 201 HW4 (Library Checkout System)
+# Your name: Lena Dao
+# Your student id: 07148470
+# Your email: lkdao@umich.edu
 # Who or what you worked with on this homework (including generative AI like ChatGPT):
 # If you worked with generative AI also add a statement for how you used it.
-# e.g.:
-# Asked ChatGPT for hints on debugging and for suggestions on overall code structure
-#
+# e.g.: Asked ChatGPT for hints on debugging and for suggestions on overall code structure
+# -
 # Did your use of GenAI on this assignment align with your goals and guidelines in your Gen AI contract? If not, why?
-#
+# -
 # --- ARGUMENTS & EXPECTED RETURN VALUES PROVIDED --- #
 # --- SEE INSTRUCTIONS FOR FULL DETAILS ON METHOD IMPLEMENTATION --- #
 
@@ -37,14 +36,30 @@ def load_listing_results(html_path) -> list[tuple]:
     Returns:
         list[tuple]: A list of tuples containing (listing_title, listing_id)
     """
-    # TODO: Implement checkout logic following the instructions
-    # ==============================
-    # YOUR CODE STARTS HERE
-    # ==============================
-    pass
-    # ==============================
-    # YOUR CODE ENDS HERE
-    # ==============================
+    results = []
+
+    with open(html_path, "r", encoding="utf-8-sig") as file:
+        html = file.read()
+
+    soup = BeautifulSoup(html, "html.parser")
+
+    title_tags = soup.find_all("div", attrs={"data-testid": "listing-card-title"})
+
+    for tag in title_tags:
+        # get the listing title text from the div
+        listing_title = tag.get_text(strip=True)
+        # get the id attribute, like "title_1944564"
+        title_id = tag.get("id", "")
+        
+        # find the number inside the id string
+        numbers = re.findall(r"\d+", title_id)
+        
+        # if a number was found, save the title and listing id as a tuple
+        if numbers:
+            listing_id = numbers[0]
+            results.append((listing_title, listing_id))
+
+    return results
 
 
 def get_listing_details(listing_id) -> dict:
@@ -66,14 +81,8 @@ def get_listing_details(listing_id) -> dict:
             }
         }
     """
-    # TODO: Implement checkout logic following the instructions
-    # ==============================
-    # YOUR CODE STARTS HERE
-    # ==============================
+    
     pass
-    # ==============================
-    # YOUR CODE ENDS HERE
-    # ==============================
 
 
 def create_listing_database(html_path) -> list[tuple]:
@@ -87,14 +96,8 @@ def create_listing_database(html_path) -> list[tuple]:
         list[tuple]: A list of tuples. Each tuple contains:
         (listing_title, listing_id, policy_number, host_type, host_name, room_type, location_rating)
     """
-    # TODO: Implement checkout logic following the instructions
-    # ==============================
-    # YOUR CODE STARTS HERE
-    # ==============================
+    
     pass
-    # ==============================
-    # YOUR CODE ENDS HERE
-    # ==============================
 
 
 def output_csv(data, filename) -> None:
@@ -110,14 +113,8 @@ def output_csv(data, filename) -> None:
     Returns:
         None
     """
-    # TODO: Implement checkout logic following the instructions
-    # ==============================
-    # YOUR CODE STARTS HERE
-    # ==============================
+    
     pass
-    # ==============================
-    # YOUR CODE ENDS HERE
-    # ==============================
 
 
 def avg_location_rating_by_room_type(data) -> dict:
@@ -133,14 +130,8 @@ def avg_location_rating_by_room_type(data) -> dict:
     Returns:
         dict: {room_type: average_location_rating}
     """
-    # TODO: Implement checkout logic following the instructions
-    # ==============================
-    # YOUR CODE STARTS HERE
-    # ==============================
+    
     pass
-    # ==============================
-    # YOUR CODE ENDS HERE
-    # ==============================
 
 
 def validate_policy_numbers(data) -> list[str]:
@@ -154,14 +145,8 @@ def validate_policy_numbers(data) -> list[str]:
     Returns:
         list[str]: A list of listing_id values whose policy numbers do NOT match the valid format
     """
-    # TODO: Implement checkout logic following the instructions
-    # ==============================
-    # YOUR CODE STARTS HERE
-    # ==============================
+    
     pass
-    # ==============================
-    # YOUR CODE ENDS HERE
-    # ==============================
 
 
 # EXTRA CREDIT
@@ -174,14 +159,8 @@ def google_scholar_searcher(query):
     Returns:
         List of titles on the first page (list)
     """
-    # TODO: Implement checkout logic following the instructions
-    # ==============================
-    # YOUR CODE STARTS HERE
-    # ==============================
+    
     pass
-    # ==============================
-    # YOUR CODE ENDS HERE
-    # ==============================
 
 
 class TestCases(unittest.TestCase):
@@ -193,9 +172,11 @@ class TestCases(unittest.TestCase):
         self.detailed_data = create_listing_database(self.search_results_path)
 
     def test_load_listing_results(self):
-        # TODO: Check that the number of listings extracted is 18.
-        # TODO: Check that the FIRST (title, id) tuple is  ("Loft in Mission District", "1944564").
-        pass
+        # Check that the number of listings extracted is 18.
+        self.assertEqual(len(self.listings), 18)
+
+        # Check that the FIRST (title, id) tuple is ("Loft in Mission District", "1944564").
+        self.assertEqual(self.listings[0], ("Loft in Mission District", "1944564"))
 
     def test_get_listing_details(self):
         html_list = ["467507", "1550913", "1944564", "4614763", "6092596"]
