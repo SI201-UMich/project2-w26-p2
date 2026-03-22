@@ -5,9 +5,9 @@
 # Who or what you worked with on this homework (including generative AI like ChatGPT):
 # If you worked with generative AI also add a statement for how you used it.
 # e.g.: Asked ChatGPT for hints on debugging and for suggestions on overall code structure
-# -
+# - I used Gemini to help me understand new material I was not familiar with, such as working with file paths, joining directories, and reading error messages. 
 # Did your use of GenAI on this assignment align with your goals and guidelines in your Gen AI contract? If not, why?
-# -
+# - Yes - I believe I used it ethically, solely for hints about what was wrong with parts of my code and to clarify concepts. Still, I wrote, tested, and understood my own work.
 # --- ARGUMENTS & EXPECTED RETURN VALUES PROVIDED --- #
 # --- SEE INSTRUCTIONS FOR FULL DETAILS ON METHOD IMPLEMENTATION --- #
 
@@ -104,10 +104,7 @@ def get_listing_details(listing_id) -> dict:
     location_rating = 0.0
 
     # find the policy number text
-    policy_match = re.search(
-        r"Policy number:\s*(.*?)\s+(Languages|Language|Response rate|Response time)",
-        page_text
-    )
+    policy_match = re.search(r"Policy number:\s*(.*?)\s+(Languages|Language|Response rate|Response time)", page_text)
 
     if policy_match:
         raw_policy = policy_match.group(1).strip()
